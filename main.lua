@@ -25,6 +25,7 @@ local destroyedSound
 local laserSound
 local asteroidHitSound
 
+-- love.load is called once when our game loads
 function love.load()
   -- Load images
   shipImage = loadImage('img/ship.png')
@@ -54,6 +55,7 @@ function love.load()
   end
 end
 
+-- love.update is called 60 time each second, it's here we update our game
 function love.update(dt)
   -- Press the enter key to respawn
   if ship.isDestroyed and love.keyboard.isDown('return') then
@@ -143,6 +145,7 @@ function love.update(dt)
   end
 end
 
+-- love.draw is called after love.update, we just render the game here
 function love.draw()
   -- Set some drawing filters
   love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -194,7 +197,7 @@ function love.draw()
   end
 end
 
--- Helper methods
+-- Creates the player ship
 function createShip()
   ship = {
     x = GAME_WIDTH / 2,
@@ -211,6 +214,7 @@ function createShip()
   love.audio.play(spawnSound:clone())
 end
 
+-- Creates a laser where the ship is, making it look like it fired the laser
 function createLaser(x, y, vx, vy)
   table.insert(lasers, {
     x = x,
@@ -223,6 +227,7 @@ function createLaser(x, y, vx, vy)
   love.audio.play(laserSound:clone())
 end
 
+-- Creates an asteroid, size=1 is small, size=3 is massive
 function createAsteroid(x, y, vx, vy, size)
   table.insert(asteroids, {
     x = x,
@@ -234,6 +239,7 @@ function createAsteroid(x, y, vx, vy, size)
   })
 end
 
+-- Generates a <x,y> pair with the given magnitude and pointing in the given angle
 function createVector(magnitude, angle)
   return magnitude * math.cos(angle), magnitude * math.sin(angle)
 end
@@ -246,12 +252,14 @@ function objectsAreTouching(obj1, obj2)
   return distance < obj1.radius + obj2.radius
 end
 
+-- Loads a pixelated image
 function loadImage(filePath)
   local image = love.graphics.newImage(filePath)
   image:setFilter('nearest', 'nearest')
   return image
 end
 
+-- Applies the object's velocity to its position, and wraps it around the edges of the screen
 function applyMovement(obj, dt)
   -- Move the game object
   obj.x = obj.x + obj.vx * dt
