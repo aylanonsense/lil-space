@@ -6,4 +6,4 @@ primaryColor: 250248
 coverImage: cover-image.png
 description: A lil game about rocks EXCEPT they're in space.
 dimensions: 192x192
-scaling: on
+scaling: step
