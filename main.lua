@@ -1,24 +1,21 @@
--- Constants
-local GAME_WIDTH = 200
-local GAME_HEIGHT = 200
-local RENDER_SCALE = 3
+-- Game constants
+local GAME_WIDTH = 192
+local GAME_HEIGHT = 192
 local SHOW_BOUNDING_CIRCLES = false
 local TIME_BETWEEN_LASERS = 0.4
 local NUM_STARTING_ASTEROIDS = 4
 
--- Game objects
+-- Game variables
 local ship
 local lasers
 local asteroids
 
--- Images
+-- Assets
 local shipImage
 local boostingShipImage
 local massiveAsteroidImage
 local largeAsteroidImage
 local smallAsteroidImage
-
--- Sound effects
 local spawnSound
 local boostSound
 local destroyedSound
@@ -27,14 +24,15 @@ local asteroidHitSound
 
 -- love.load is called once when our game loads
 function love.load()
-  -- Load images
-  shipImage = loadImage('img/ship.png')
-  boostingShipImage = loadImage('img/ship-boost.png')
-  massiveAsteroidImage = loadImage('img/asteroid-massive.png')
-  largeAsteroidImage = loadImage('img/asteroid-large.png')
-  smallAsteroidImage = loadImage('img/asteroid-small.png')
+  -- Set filters
+  love.graphics.setDefaultFilter('nearest', 'nearest')
 
-  -- Load sound effects
+  -- Load assets
+  shipImage = love.graphics.newImage('img/ship.png')
+  boostingShipImage = love.graphics.newImage('img/ship-boost.png')
+  massiveAsteroidImage = love.graphics.newImage('img/asteroid-massive.png')
+  largeAsteroidImage = love.graphics.newImage('img/asteroid-large.png')
+  smallAsteroidImage = love.graphics.newImage('img/asteroid-small.png')
   spawnSound = love.audio.newSource('sfx/ship-spawn.wav', 'static')
   boostSound = love.audio.newSource('sfx/ship-boost.wav', 'static')
   destroyedSound = love.audio.newSource('sfx/ship-destroyed.wav', 'static')
@@ -60,6 +58,7 @@ function love.update(dt)
   -- Press the enter key to respawn
   if ship.isDestroyed and love.keyboard.isDown('return') then
     createShip()
+    love.audio.play(spawnSound:clone())
   end
 
   -- Update the ship
@@ -83,7 +82,7 @@ function love.update(dt)
         ship.boostSoundCooldown = 0.22
       end
     end
-    -- Apply friction to the ship
+    -- Apply a small amount of friction to the ship
     ship.vx = ship.vx * 0.995
     ship.vy = ship.vy * 0.995
     -- Move the ship
@@ -147,17 +146,13 @@ end
 
 -- love.draw is called after love.update, we just render the game here
 function love.draw()
-  -- Set some drawing filters
-  love.graphics.setDefaultFilter('nearest', 'nearest')
-  love.graphics.scale(RENDER_SCALE, RENDER_SCALE)
-
-  -- Black out the screen
-  love.graphics.setColor(0, 0, 0, 1)
-  love.graphics.rectangle('fill', 0, 0, GAME_WIDTH, GAME_HEIGHT)
-  love.graphics.setColor(1, 1, 1, 1)
+  -- Clear the screen
+  love.graphics.clear(37 / 255, 2 / 255, 72 / 255)
 
   -- Draw the ship
+  love.graphics.setColor(1, 1, 1)
   if ship.isDestroyed then
+    love.graphics.setColor(251 / 255, 238 / 255, 230 / 255)
     love.graphics.print('Press enter to respawn', 10, 10)
   elseif ship.invulnerabilityTime % 0.3 < 0.2 then
     local image = love.keyboard.isDown('up') and boostingShipImage or shipImage
@@ -165,6 +160,7 @@ function love.draw()
   end
 
   -- Draw the lasers
+  love.graphics.setColor(1, 1, 1)
   for _, laser in ipairs(lasers) do
     love.graphics.rectangle('fill', laser.x - 1, laser.y - 1, 2, 2)
   end
@@ -184,7 +180,7 @@ function love.draw()
 
   -- Draw bounding circles (for debugging)
   if SHOW_BOUNDING_CIRCLES then
-    love.graphics.setColor(1, 1, 0, 1)
+    love.graphics.setColor(1, 1, 0)
     if not ship.isDestroyed then
       love.graphics.circle('line', ship.x, ship.y, ship.radius)
     end
@@ -211,7 +207,6 @@ function createShip()
     invulnerabilityTime = 1.50,
     boostSoundCooldown = 0.00
   }
-  love.audio.play(spawnSound:clone())
 end
 
 -- Creates a laser where the ship is, making it look like it fired the laser
@@ -250,13 +245,6 @@ function objectsAreTouching(obj1, obj2)
   local dy = obj2.y - obj1.y
   local distance = math.sqrt(dx * dx + dy * dy)
   return distance < obj1.radius + obj2.radius
-end
-
--- Loads a pixelated image
-function loadImage(filePath)
-  local image = love.graphics.newImage(filePath)
-  image:setFilter('nearest', 'nearest')
-  return image
 end
 
 -- Applies the object's velocity to its position, and wraps it around the edges of the screen
